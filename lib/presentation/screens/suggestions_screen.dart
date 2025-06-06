@@ -91,26 +91,37 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
         child: Text('No ingredients in stock. Add some ingredients first.'),
       );
     }
+    // Limit the height of the ingredient selector and make it scrollable if too many chips
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Wrap(
-        spacing: 8,
-        children: availableIngredients.map((ingredient) {
-          final selected = _selectedIngredientNames.contains(ingredient.name);
-          return FilterChip(
-            label: Text(ingredient.name),
-            selected: selected,
-            onSelected: (val) {
-              setState(() {
-                if (val) {
-                  _selectedIngredientNames.add(ingredient.name);
-                } else {
-                  _selectedIngredientNames.remove(ingredient.name);
-                }
-              });
-            },
-          );
-        }).toList(),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 120),
+        child: Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: availableIngredients.map((ingredient) {
+                final selected = _selectedIngredientNames.contains(ingredient.name);
+                return FilterChip(
+                  label: Text(ingredient.name),
+                  selected: selected,
+                  onSelected: (val) {
+                    setState(() {
+                      if (val) {
+                        _selectedIngredientNames.add(ingredient.name);
+                      } else {
+                        _selectedIngredientNames.remove(ingredient.name);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -228,19 +239,41 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
                                       // Only show ingredients that are in stock (quantity > 0)
                                       if (suggestion.ingredients.isNotEmpty) ...[
                                         const Text('Ingredients in stock:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        ...suggestion.ingredients
-                                          .where((ing) {
-                                            final matches = _allIngredients.where(
-                                              (i) => i.name.trim().toLowerCase() == (ing['name'] ?? '').toString().trim().toLowerCase() && i.quantity > 0,
+                                        // Show only the first 5 ingredients, and indicate if there are more
+                                        Builder(
+                                          builder: (context) {
+                                            final inStock = suggestion.ingredients
+                                              .where((ing) {
+                                                final matches = _allIngredients.where(
+                                                  (i) => i.name.trim().toLowerCase() == (ing['name'] ?? '').toString().trim().toLowerCase() && i.quantity > 0,
+                                                );
+                                                return matches.isNotEmpty;
+                                              })
+                                              .toList();
+                                            final displayCount = 5;
+                                            final showMore = inStock.length > displayCount;
+                                            final displayed = inStock.take(displayCount).toList();
+                                            return Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                ...displayed.map((ing) => Text(
+                                                  '- ${fixEncoding(ing['name'] ?? '')} '
+                                                  '${fixEncoding(ing['quantity'] ?? '')} '
+                                                  '${fixEncoding(ing['quantity_type'] ?? ing['quantityType'] ?? '')}'
+                                                  '${(ing['notes'] != null && ing['notes']!.isNotEmpty) ? ' (${fixEncoding(ing['notes']!)})' : ''}',
+                                                )),
+                                                if (showMore)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(top: 4),
+                                                    child: Text(
+                                                      '+${inStock.length - displayCount} more',
+                                                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                                    ),
+                                                  ),
+                                              ],
                                             );
-                                            return matches.isNotEmpty;
-                                          })
-                                          .map((ing) => Text(
-                                            '- ${fixEncoding(ing['name'] ?? '')} '
-                                            '${fixEncoding(ing['quantity'] ?? '')} '
-                                            '${fixEncoding(ing['quantity_type'] ?? ing['quantityType'] ?? '')}'
-                                            '${(ing['notes'] != null && ing['notes']!.isNotEmpty) ? ' (${fixEncoding(ing['notes']!)})' : ''}',
-                                          )),
+                                          },
+                                        ),
                                         const SizedBox(height: 8),
                                       ],
                                       if (suggestion.instructions.isNotEmpty) ...[
@@ -273,9 +306,11 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
                                                 ).join('\n') +
                                                 '\n\n';
                                             }
-                                            // Combine ingredients section and instructions
-                                            final fullInstructions = ingredientsSection +
-                                              suggestion.instructions.join('\n');
+                                            // Combine ingredients section and instructions (with numbers)
+                                            final instructionsSection = suggestion.instructions.asMap().entries
+                                              .map((entry) => '${entry.key + 1}. ${fixEncoding(entry.value)}')
+                                              .join('\n');
+                                            final fullInstructions = ingredientsSection + instructionsSection;
                                             final recipeMap = {
                                               'title': suggestion.name,
                                               'time': suggestion.cookingTime,
