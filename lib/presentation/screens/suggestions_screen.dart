@@ -83,17 +83,19 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
   }
 
   Widget _buildIngredientSelector() {
-    if (_allIngredients.isEmpty) {
+    // Only show ingredients with quantity > 0
+    final availableIngredients = _allIngredients.where((ingredient) => ingredient.quantity > 0).toList();
+    if (availableIngredients.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
-        child: Text('No ingredients found. Add some ingredients first.'),
+        child: Text('No ingredients in stock. Add some ingredients first.'),
       );
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Wrap(
         spacing: 8,
-        children: _allIngredients.map((ingredient) {
+        children: availableIngredients.map((ingredient) {
           final selected = _selectedIngredientNames.contains(ingredient.name);
           return FilterChip(
             label: Text(ingredient.name),
@@ -125,7 +127,9 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
           onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
       ),
-      body: _buildBody(),
+      body: SafeArea(
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -166,14 +170,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
                         await _loadSuggestions();
                       },
               ),
-              const SizedBox(width: 12),
-              Text(
-                _selectedIngredientNames.isEmpty
-                    ? 'Select ingredients to use for suggestions.'
-                    : 'Selected: ${_selectedIngredientNames.join(", ")}',
-                style: const TextStyle(fontSize: 14),
-                overflow: TextOverflow.ellipsis,
-              ),
+              const SizedBox(width: 12)
             ],
           ),
         ),
@@ -228,14 +225,23 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      // Only show ingredients that are in stock (quantity > 0)
                                       if (suggestion.ingredients.isNotEmpty) ...[
-                                        const Text('Ingredients:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        ...suggestion.ingredients.map((ing) => Text(
-                                          '- ${fixEncoding(ing['name'] ?? '')} '
-                                          '${fixEncoding(ing['quantity'] ?? '')} '
-                                          '${fixEncoding(ing['quantity_type'] ?? ing['quantityType'] ?? '')}'
-                                          '${(ing['notes'] != null && ing['notes']!.isNotEmpty) ? ' (${fixEncoding(ing['notes']!)})' : ''}',
-                                        )),
+                                        const Text('Ingredients in stock:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        ...suggestion.ingredients
+                                          .where((ing) {
+                                            final stock = _allIngredients.firstWhere(
+                                              (i) => i.name.trim().toLowerCase() == (ing['name'] ?? '').toString().trim().toLowerCase(),
+                                              orElse: () => null as Ingredient, // workaround for nullable
+                                            );
+                                            return stock != null && stock.quantity > 0;
+                                          })
+                                          .map((ing) => Text(
+                                            '- ${fixEncoding(ing['name'] ?? '')} '
+                                            '${fixEncoding(ing['quantity'] ?? '')} '
+                                            '${fixEncoding(ing['quantity_type'] ?? ing['quantityType'] ?? '')}'
+                                            '${(ing['notes'] != null && ing['notes']!.isNotEmpty) ? ' (${fixEncoding(ing['notes']!)})' : ''}',
+                                          )),
                                         const SizedBox(height: 8),
                                       ],
                                       if (suggestion.instructions.isNotEmpty) ...[

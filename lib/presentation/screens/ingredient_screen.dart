@@ -61,7 +61,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
 
     if (difference < 0) return Colors.red; // Expired
     if (difference < 3) return Colors.orange; // Expiring soon
-    if (difference < 7) return Colors.yellow; // Expiring this week
+    if (difference < 7) return Colors.amber; // Expiring this week 
     return Colors.green; // Good
   }
 
@@ -77,7 +77,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
           onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
       ),
-      body: _buildBody(),
+      body: SafeArea(child: _buildBody()),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final added = await showDialog<Ingredient>(
@@ -305,58 +305,62 @@ class _AddIngredientDialogState extends State<_AddIngredientDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Ingredient'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _quantityController,
-                decoration: const InputDecoration(labelText: 'Quantity'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  final n = double.tryParse(v);
-                  if (n == null || n < 0) return 'Enter a valid number';
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<Unit>(
-                value: _selectedUnit,
-                items: Unit.values
-                    .map((u) => DropdownMenuItem(
-                          value: u,
-                          child: Text(u.abbreviation),
-                        ))
-                    .toList(),
-                onChanged: (u) => setState(() => _selectedUnit = u!),
-                decoration: const InputDecoration(labelText: 'Unit'),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(_expiration == null
-                        ? 'No expiration'
-                        : 'Expires: ${_expiration!.toLocal().toString().split(' ')[0]}'),
-                  ),
-                  TextButton(
-                    onPressed: _pickDate,
-                    child: const Text('Pick Date'),
-                  ),
-                ],
-              ),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
-              ),
-            ],
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      contentPadding: const EdgeInsets.all(16),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(labelText: 'Quantity'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    final n = double.tryParse(v);
+                    if (n == null || n < 0) return 'Enter a valid number';
+                    return null;
+                  },
+                ),
+                DropdownButtonFormField<Unit>(
+                  value: _selectedUnit,
+                  items: Unit.values
+                      .map((u) => DropdownMenuItem(
+                            value: u,
+                            child: Text(u.abbreviation),
+                          ))
+                      .toList(),
+                  onChanged: (u) => setState(() => _selectedUnit = u!),
+                  decoration: const InputDecoration(labelText: 'Unit'),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(_expiration == null
+                          ? 'No expiration'
+                          : 'Expires: ${_expiration!.toLocal().toString().split(' ')[0]}'),
+                    ),
+                    TextButton(
+                      onPressed: _pickDate,
+                      child: const Text('Pick Date'),
+                    ),
+                  ],
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -466,58 +470,62 @@ class _EditIngredientDialogState extends State<_EditIngredientDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit Ingredient'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _quantityController,
-                decoration: const InputDecoration(labelText: 'Quantity'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  final n = double.tryParse(v);
-                  if (n == null || n < 0) return 'Enter a valid number';
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<Unit>(
-                value: _selectedUnit,
-                items: Unit.values
-                    .map((u) => DropdownMenuItem(
-                          value: u,
-                          child: Text(u.abbreviation),
-                        ))
-                    .toList(),
-                onChanged: (u) => setState(() => _selectedUnit = u!),
-                decoration: const InputDecoration(labelText: 'Unit'),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(_expiration == null
-                        ? 'No expiration'
-                        : 'Expires: ${_expiration!.toLocal().toString().split(' ')[0]}'),
-                  ),
-                  TextButton(
-                    onPressed: _pickDate,
-                    child: const Text('Pick Date'),
-                  ),
-                ],
-              ),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
-              ),
-            ],
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      contentPadding: const EdgeInsets.all(16),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(labelText: 'Quantity'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    final n = double.tryParse(v);
+                    if (n == null || n < 0) return 'Enter a valid number';
+                    return null;
+                  },
+                ),
+                DropdownButtonFormField<Unit>(
+                  value: _selectedUnit,
+                  items: Unit.values
+                      .map((u) => DropdownMenuItem(
+                            value: u,
+                            child: Text(u.abbreviation),
+                          ))
+                      .toList(),
+                  onChanged: (u) => setState(() => _selectedUnit = u!),
+                  decoration: const InputDecoration(labelText: 'Unit'),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(_expiration == null
+                          ? 'No expiration'
+                          : 'Expires: ${_expiration!.toLocal().toString().split(' ')[0]}'),
+                    ),
+                    TextButton(
+                      onPressed: _pickDate,
+                      child: const Text('Pick Date'),
+                    ),
+                  ],
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
