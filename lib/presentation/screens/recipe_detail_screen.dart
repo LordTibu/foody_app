@@ -58,88 +58,90 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshRecipe,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_recipe.imageUrl != null && _recipe.imageUrl!.isNotEmpty)
-                Center(
-                  child: Image.network(
-                    _recipe.imageUrl!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.restaurant, size: 100, color: Colors.grey),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _refreshRecipe,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_recipe.imageUrl != null && _recipe.imageUrl!.isNotEmpty)
+                  Center(
+                    child: Image.network(
+                      _recipe.imageUrl!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.restaurant, size: 100, color: Colors.grey),
+                    ),
                   ),
+                const SizedBox(height: 16),
+                Text(
+                  _recipe.title,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-              const SizedBox(height: 16),
-              Text(
-                _recipe.title,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              if (_recipe.time != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.timer_outlined, size: 18),
-                      const SizedBox(width: 4),
-                      Text('${_recipe.time} min'),
-                    ],
+                if (_recipe.time != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.timer_outlined, size: 18),
+                        const SizedBox(width: 4),
+                        Text('${_recipe.time} min'),
+                      ],
+                    ),
                   ),
-                ),
-              if (_recipe.notes != null && _recipe.notes!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    _recipe.notes!,
-                    style: TextStyle(color: Colors.grey[700]),
+                if (_recipe.notes != null && _recipe.notes!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _recipe.notes!,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
                   ),
-                ),
-              const SizedBox(height: 24),
-              Text('Ingredients', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              ..._recipe.ingredients.map((ing) {
-                final ingredientName = ing.ingredient?.name ?? ing.ingredientId;
-                final pantryQty = ing.ingredient?.quantity ?? 0;
-                final neededQty = ing.quantity;
-                final isMissing = pantryQty == 0;
-                final notEnough = !isMissing && pantryQty < neededQty;
-                return ListTile(
-                  leading: const Icon(Icons.egg),
-                  title: Row(
-                    children: [
-                      Text(ingredientName),
-                      if (isMissing)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Tooltip(
-                            message: 'You do not have this ingredient',
-                            child: Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                const SizedBox(height: 24),
+                Text('Ingredients', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 8),
+                ..._recipe.ingredients.map((ing) {
+                  final ingredientName = ing.ingredient?.name ?? ing.ingredientId;
+                  final pantryQty = ing.ingredient?.quantity ?? 0;
+                  final neededQty = ing.quantity;
+                  final isMissing = pantryQty == 0;
+                  final notEnough = !isMissing && pantryQty < neededQty;
+                  return ListTile(
+                    leading: const Icon(Icons.egg),
+                    title: Row(
+                      children: [
+                        Text(ingredientName),
+                        if (isMissing)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Tooltip(
+                              message: 'You do not have this ingredient',
+                              child: Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                            ),
                           ),
-                        ),
-                      if (notEnough)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Tooltip(
-                            message: 'Not enough in stock (have $pantryQty, need $neededQty)',
-                            child: Icon(Icons.error_outline, color: Colors.orange[800], size: 20),
+                        if (notEnough)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Tooltip(
+                              message: 'Not enough in stock (have $pantryQty, need $neededQty)',
+                              child: Icon(Icons.error_outline, color: Colors.orange[800], size: 20),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                  subtitle: Text('${ing.quantity} ${ing.quantityType.abbreviation}${ing.notes != null && ing.notes!.isNotEmpty ? ' - ${ing.notes}' : ''}'),
-                );
-              }),
-              const SizedBox(height: 24),
-              Text('Instructions', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(_recipe.instructions),
-            ],
+                      ],
+                    ),
+                    subtitle: Text('${ing.quantity} ${ing.quantityType.abbreviation}${ing.notes != null && ing.notes!.isNotEmpty ? ' - ${ing.notes}' : ''}'),
+                  );
+                }),
+                const SizedBox(height: 24),
+                Text('Instructions', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 8),
+                Text(_recipe.instructions),
+              ],
+            ),
           ),
         ),
       ),
@@ -247,79 +249,83 @@ class _EditRecipeDialogState extends State<_EditRecipeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit Recipe'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _timeController,
-                decoration: const InputDecoration(labelText: 'Time (minutes)'),
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return null;
-                  final n = int.tryParse(v);
-                  if (n == null || n < 0) return 'Enter a valid number';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _instructionsController,
-                decoration: const InputDecoration(labelText: 'Instructions'),
-                minLines: 3,
-                maxLines: 6,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text('Ingredients', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Add Ingredient',
-                    onPressed: () => _addOrEditIngredient(),
-                  ),
-                ],
-              ),
-              ..._ingredients.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final ing = entry.value;
-                final name = ing.ingredient?.name ?? ing.ingredientId;
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.egg),
-                  title: Text(name),
-                  subtitle: Text('${ing.quantity} ${ing.quantityType.abbreviation}${ing.notes != null && ing.notes!.isNotEmpty ? ' - ${ing.notes}' : ''}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        tooltip: 'Edit',
-                        onPressed: () => _addOrEditIngredient(ingredient: ing, index: idx),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        tooltip: 'Remove',
-                        onPressed: () => _removeIngredient(idx),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      contentPadding: const EdgeInsets.all(16),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _timeController,
+                  decoration: const InputDecoration(labelText: 'Time (minutes)'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return null;
+                    final n = int.tryParse(v);
+                    if (n == null || n < 0) return 'Enter a valid number';
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _instructionsController,
+                  decoration: const InputDecoration(labelText: 'Instructions'),
+                  minLines: 3,
+                  maxLines: 6,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text('Ingredients', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      tooltip: 'Add Ingredient',
+                      onPressed: () => _addOrEditIngredient(),
+                    ),
+                  ],
+                ),
+                ..._ingredients.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final ing = entry.value;
+                  final name = ing.ingredient?.name ?? ing.ingredientId;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.egg),
+                    title: Text(name),
+                    subtitle: Text('${ing.quantity} ${ing.quantityType.abbreviation}${ing.notes != null && ing.notes!.isNotEmpty ? ' - ${ing.notes}' : ''}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          tooltip: 'Edit',
+                          onPressed: () => _addOrEditIngredient(ingredient: ing, index: idx),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          tooltip: 'Remove',
+                          onPressed: () => _removeIngredient(idx),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
         ),
       ),

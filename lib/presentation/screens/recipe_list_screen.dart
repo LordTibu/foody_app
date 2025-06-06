@@ -67,7 +67,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
           onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
       ),
-      body: _buildBody(),
+      body: SafeArea(child: _buildBody()),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final added = await showDialog<Recipe>(
@@ -145,7 +145,12 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                     ),
               title: Row(
                 children: [
-                  Text(recipe.title),
+                  Expanded( // <-- Add this
+                    child: Text(
+                      recipe.title,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   if (hasMissing)
                     Padding(
                       padding: const EdgeInsets.only(left: 8),
@@ -164,19 +169,33 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                     ),
                 ],
               ),
-              subtitle: Row(
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.timer_outlined, 
-                       size: 16, 
-                       color: Theme.of(context).colorScheme.secondary),
-                  const SizedBox(width: 4),
-                  Text(_formatCookingTime(recipe.time)),
-                  const SizedBox(width: 16),
-                  Icon(Icons.egg_outlined, 
-                       size: 16, 
-                       color: Theme.of(context).colorScheme.secondary),
-                  const SizedBox(width: 4),
-                  Text('${recipe.ingredients.length} ingredients'),
+                  Row(
+                    children: [
+                      Icon(Icons.timer_outlined, 
+                          size: 16, 
+                          color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatCookingTime(recipe.time),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.egg_outlined, 
+                          size: 16, 
+                          color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${recipe.ingredients.length} ingredients',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ],
               ),
               trailing: Row(
@@ -355,50 +374,54 @@ class _AddRecipeDialogState extends State<_AddRecipeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Recipe'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _timeController,
-                decoration: const InputDecoration(labelText: 'Time (minutes)'),
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return null;
-                  final n = int.tryParse(v);
-                  if (n == null || n < 0) return 'Enter a valid number';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _instructionsController,
-                decoration: const InputDecoration(labelText: 'Instructions'),
-                minLines: 3,
-                maxLines: 6,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
-              ),
-              const SizedBox(height: 12),
-              const Text('Ingredients for this recipe:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ..._ingredients.map((ing) => Text(
-                  '- ${ing['ingredient_id']} (${ing['quantity']} ${ing['quantity_type']})')),
-              TextButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Add Ingredient'),
-                onPressed: _addIngredientDialog,
-              ),
-            ],
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      contentPadding: const EdgeInsets.all(16),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _timeController,
+                  decoration: const InputDecoration(labelText: 'Time (minutes)'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return null;
+                    final n = int.tryParse(v);
+                    if (n == null || n < 0) return 'Enter a valid number';
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _instructionsController,
+                  decoration: const InputDecoration(labelText: 'Instructions'),
+                  minLines: 3,
+                  maxLines: 6,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                ),
+                const SizedBox(height: 12),
+                const Text('Ingredients for this recipe:', style: TextStyle(fontWeight: FontWeight.bold)),
+                ..._ingredients.map((ing) => Text(
+                    '- ${ing['ingredient_id']} (${ing['quantity']} ${ing['quantity_type']})')),
+                TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Ingredient'),
+                  onPressed: _addIngredientDialog,
+                ),
+              ],
+            ),
           ),
         ),
       ),
