@@ -16,6 +16,24 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    // Use addPostFrameCallback to avoid navigator errors on startup
+    final user = _supabaseService.supabase.auth.currentUser;
+    if (user != null && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      });
+    }
+  }
+
   Future<void> _signUp() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
@@ -75,7 +93,12 @@ class _AuthScreenState extends State<AuthScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use addPostFrameCallback to avoid navigator errors
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pushReplacementNamed('/home');
+          }
+        });
       }
     } catch (e) {
       setState(() {

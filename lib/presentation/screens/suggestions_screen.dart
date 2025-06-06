@@ -230,11 +230,10 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> {
                                         const Text('Ingredients in stock:', style: TextStyle(fontWeight: FontWeight.bold)),
                                         ...suggestion.ingredients
                                           .where((ing) {
-                                            final stock = _allIngredients.firstWhere(
-                                              (i) => i.name.trim().toLowerCase() == (ing['name'] ?? '').toString().trim().toLowerCase(),
-                                              orElse: () => null as Ingredient, // workaround for nullable
+                                            final matches = _allIngredients.where(
+                                              (i) => i.name.trim().toLowerCase() == (ing['name'] ?? '').toString().trim().toLowerCase() && i.quantity > 0,
                                             );
-                                            return stock != null && stock.quantity > 0;
+                                            return matches.isNotEmpty;
                                           })
                                           .map((ing) => Text(
                                             '- ${fixEncoding(ing['name'] ?? '')} '
