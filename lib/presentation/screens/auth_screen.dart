@@ -127,6 +127,7 @@ class _AuthScreenState extends State<AuthScreen> {
         title: const Text('Welcome to Foody'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
